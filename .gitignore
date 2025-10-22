@@ -1,0 +1,10 @@
+myenv
+dlib
+archive
+data
+*.jpg
+*.jpeg
+*.mp4
+*.avi
+*.ipynb
+__pycache__

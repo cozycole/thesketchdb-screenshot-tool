@@ -1,0 +1,89 @@
+{
+  "clusters": {
+    "-1": {
+      "label": -1,
+      "size": 10,
+      "avg_quality": 0.5142758704325662,
+      "representative": "clusters/noise/representative_face_75.jpg",
+      "samples_dir": "clusters/noise/samples",
+      "centroid_norm": 9.565656661987305
+    },
+    "6": {
+      "label": 6,
+      "size": 30,
+      "avg_quality": 0.5329086166193244,
+      "representative": "clusters/cluster_006/representative_face_31.jpg",
+      "samples_dir": "clusters/cluster_006/samples",
+      "centroid_norm": 19.382667541503906
+    },
+    "4": {
+      "label": 4,
+      "size": 13,
+      "avg_quality": 0.47336239846833766,
+      "representative": "clusters/cluster_004/representative_face_23.jpg",
+      "samples_dir": "clusters/cluster_004/samples",
+      "centroid_norm": 15.626155853271484
+    },
+    "0": {
+      "label": 0,
+      "size": 21,
+      "avg_quality": 0.5346729551126927,
+      "representative": "clusters/cluster_000/representative_face_40.jpg",
+      "samples_dir": "clusters/cluster_000/samples",
+      "centroid_norm": 17.46125602722168
+    },
+    "2": {
+      "label": 2,
+      "size": 12,
+      "avg_quality": 0.5484225472306068,
+      "representative": "clusters/cluster_002/representative_face_90.jpg",
+      "samples_dir": "clusters/cluster_002/samples",
+      "centroid_norm": 15.570039749145508
+    },
+    "3": {
+      "label": 3,
+      "size": 6,
+      "avg_quality": 0.3995625708393042,
+      "representative": "clusters/cluster_003/representative_face_76.jpg",
+      "samples_dir": "clusters/cluster_003/samples",
+      "centroid_norm": 12.507094383239746
+    },
+    "5": {
+      "label": 5,
+      "size": 8,
+      "avg_quality": 0.5979735442358807,
+      "representative": "clusters/cluster_005/representative_face_84.jpg",
+      "samples_dir": "clusters/cluster_005/samples",
+      "centroid_norm": 20.29922866821289
+    },
+    "1": {
+      "label": 1,
+      "size": 7,
+      "avg_quality": 0.3358484257684008,
+      "representative": "clusters/cluster_001/representative_face_100.jpg",
+      "samples_dir": "clusters/cluster_001/samples",
+      "centroid_norm": 15.962733268737793
+    },
+    "7": {
+      "label": 7,
+      "size": 29,
+      "avg_quality": 0.6271899403926008,
+      "representative": "clusters/cluster_007/representative_face_128.jpg",
+      "samples_dir": "clusters/cluster_007/samples",
+      "centroid_norm": 17.145347595214844
+    },
+    "8": {
+      "label": 8,
+      "size": 7,
+      "avg_quality": 0.6116620606416466,
+      "representative": "clusters/cluster_008/representative_face_106.jpg",
+      "samples_dir": "clusters/cluster_008/samples",
+      "centroid_norm": 17.21034049987793
+    }
+  },
+  "params": {
+    "frame_interval": 15,
+    "min_face_size": 40,
+    "hdbscan_min_cluster_size": 5
+  }
+}
