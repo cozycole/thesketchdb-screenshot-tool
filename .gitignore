@@ -2,6 +2,7 @@ myenv
 dlib
 archive
 data
+output
 *.jpg
 *.jpeg
 *.mp4
