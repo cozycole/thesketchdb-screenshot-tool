@@ -8,4 +8,5 @@ output
 *.mp4
 *.avi
 *.ipynb
+*.pth
 __pycache__

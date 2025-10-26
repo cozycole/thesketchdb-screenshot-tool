@@ -54,44 +54,41 @@ def remove_borders(frame, tol=15, safety_crop=2):
 
     return cropped
 
-# def remove_borders(frame, tol=15):
-#     """
-#     Removes solid-color borders (e.g. black bars) from an image.
-#
-#     Args:
-#         frame: BGR image (np.ndarray)
-#         tol: tolerance (0–255), how much variation from border color to allow
-#
-#     Returns:
-#         cropped: cropped image with borders removed
-#     """
-#     if frame is None or frame.size == 0:
-#         return frame
-#
-#     # Convert to grayscale for simplicity
-#     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-#
-#     # Detect border color (average of corners)
-#     corners = np.concatenate([
-#         gray[0:5, 0:5].ravel(),
-#         gray[0:5, -5:].ravel(),
-#         gray[-5:, 0:5].ravel(),
-#         gray[-5:, -5:].ravel()
-#     ])
-#     border_color = np.median(corners)
-#
-#     # Build mask of pixels differing significantly from border color
-#     mask = np.abs(gray.astype(np.int16) - border_color) > tol
-#
-#     # Find bounding box of non-border area
-#     coords = cv2.findNonZero(mask.astype(np.uint8))
-#     if coords is None:
-#         return frame  # whole frame is one color, nothing to crop
-#
-#     x, y, w, h = cv2.boundingRect(coords)
-#     cropped = frame[y:y+h, x:x+w]
-#
-#     return cropped
+# used for image quality assessment
+def crop_face_square(frame, bbox, resize) -> 'cv2.Mat | None':
+    # Get bounding box coordinates
+    x1, y1, x2, y2 = map(int, bbox)
+    w = x2 - x1
+    h = y2 - y1
+
+    # --- Step 1: Make it square ---
+    # Find center and max side length
+    cx, cy = x1 + w / 2, y1 + h / 2
+    side = max(w, h)
+
+    # --- Step 2: Expand square by 30% (or your chosen ratio) ---
+    expand_ratio = 0.4
+    side = side * (1 + expand_ratio)
+
+    # --- Step 3: Compute new coordinates ---
+    x1_new = int(cx - side / 2)
+    y1_new = int(cy - side / 2)
+    x2_new = int(cx + side / 2)
+    y2_new = int(cy + side / 2)
+
+    # --- Step 4: Clip to image boundaries ---
+    x1_new = max(0, x1_new)
+    y1_new = max(0, y1_new)
+    x2_new = min(frame.shape[1], x2_new)
+    y2_new = min(frame.shape[0], y2_new)
+
+    # --- Step 5: Crop and resize ---
+    face_crop = frame[y1_new:y2_new, x1_new:x2_new].copy()
+    if face_crop.size == 0:
+        return None
+
+    face_resized = cv2.resize(face_crop, (resize, resize))
+    return face_resized
 
 def crop_profile_image(frame, box):
     """
@@ -122,8 +119,8 @@ def crop_profile_image(frame, box):
 
     # Far shot (0.2 top, 1.0 bottom)
     # Close shot (0.45 top, 0.35 bottom)
-    top_margin_ratio = 0.2 + (0.4 - 0.2) * t
-    bottom_margin_ratio = 1.2 + (0.3 - 1.2) * t
+    top_margin_ratio = 0.2 + (0.3 - 0.2) * t
+    bottom_margin_ratio = 1.2 + (0.5 - 1.2) * t
 
     # Derived values
     nose_x = x1 + w / 2
@@ -133,7 +130,7 @@ def crop_profile_image(frame, box):
     crop_height = crop_y2 - crop_y1
     crop_x1 = int(nose_x - crop_height / 2) # left of image
     crop_x2 = int(nose_x + crop_height / 2) # right of image
-    
+
     # in a while loop since sometimes after a resize, it needs to be shifted
     while True:
         if (crop_x1 < 0 and crop_x2 > W) or (crop_y1 < 0 and crop_y2 > H):
@@ -143,27 +140,27 @@ def crop_profile_image(frame, box):
             crop_height = crop_y2 - crop_y1
             crop_x1 = int(nose_x - crop_height / 2) # left of image
             crop_x2 = int(nose_x + crop_height / 2) # right of image
-            print("Resized crop dimensions:", crop_x1, crop_y1, crop_x2, crop_y2)
+            # print("Resized crop dimensions:", crop_x1, crop_y1, crop_x2, crop_y2)
         else:
             # Adjust boundaries individually if only one side exceeds
             if crop_x1 < 0:
-                print("crop_x_left < 0")
+                # print("crop_x_left < 0")
                 shift = -crop_x1
                 crop_x1 += shift
                 crop_x2 += shift
             if crop_x2 > W:
-                print("crop_x_right > W")
+                # print("crop_x_right > W")
                 shift = crop_x2 - W
                 crop_x1 -= shift
                 crop_x2 -= shift
 
             if crop_y1 < 0:
-                print("crop_y_top < 0")
+                # print("crop_y_top < 0")
                 shift = -crop_y1
                 crop_y1 += shift
                 crop_y2 += shift
             if crop_y2 > H:
-                print("crop_y_bottom > H")
+                # print("crop_y_bottom > H")
                 shift = crop_y2 - H
                 crop_y1 -= shift
                 crop_y2 -= shift
@@ -207,55 +204,54 @@ def crop_thumbnail_16x9(frame, box):
     t = np.clip((rel - 0.1) / (0.6 - 0.1), 0, 1)
     
     # Far shot → (0.3 top, 0.7 bottom)
-    # Close shot → (0.45 top, 0.35 bottom)
-    top_margin_ratio = 0.2 + (0.4 - 0.2) * t
-    bottom_margin_ratio = 1.2 + (0.3 - 1.2) * t
+    # Close shot → (0.45 top, 0.3 bottom)
+    top_margin_ratio = 0.2 + (0.3 - 0.2) * t
+    bottom_margin_ratio = 1.2 + (0.5 - 1.2) * t
     # Derived values
     nose_x = x1 + w / 2
     
     crop_y1 = int(y1 - h*top_margin_ratio) # top of image
     crop_y2 = int(y2 + h*bottom_margin_ratio) # bottom of image
     crop_height = crop_y2 - crop_y1
-    print("crop height", crop_height)
     crop_x1 = int(nose_x - crop_height * (16/9) / 2) # left of image
     crop_x2 = int(nose_x + crop_height * (16/9) / 2) # right of image
-    crop_width = crop_x2 - crop_x1
-    print("crop width", crop_width)
+    # crop_width = crop_x2 - crop_x1
     
-    print("Crop dimensions:", crop_x1, crop_y1, crop_x2, crop_y2)
+    # print("Crop dimensions:", crop_x1, crop_y1, crop_x2, crop_y2)
     # scale = min(W / (crop_x2 - crop_x1), H / (crop_y2 - crop_y1))
     # print("SCALE: ",scale)
     # return crop_x1, crop_y1, crop_x2, crop_y2
     # Check if crop is larger than frame in both dimensions
     while True:
         if (crop_x1 < 0 and crop_x2 > W) or (crop_y1 < 0 and crop_y2 > H):
-            print("Scaled!")
+            # print("Scaled!")
             scale = min(W / (crop_x2 - crop_x1), H / (crop_y2 - crop_y1))
             crop_y1 = int(crop_y1 * scale)
             crop_y2 = int(crop_y2 * scale) # bottom of image
-            crop_x1 = int(crop_x1 * scale)
-            crop_x2 = int(crop_x2 * scale) # right of image
-            print("Resized crop dimensions:", crop_x1, crop_y1, crop_x2, crop_y2)
+            crop_height = crop_y2 - crop_y1
+            crop_x1 = int(nose_x - crop_height * (16/9) / 2) # left of image
+            crop_x2 = int(nose_x + crop_height * (16/9) / 2) # right of image
+            # print("Resized crop dimensions:", crop_x1, crop_y1, crop_x2, crop_y2)
         else:
             # Adjust boundaries individually if only one side exceeds
             if crop_x1 < 0:
-                print("crop_x_left < 0")
+                # print("crop_x_left < 0")
                 shift = -crop_x1
                 crop_x1 += shift
                 crop_x2 += shift
             if crop_x2 > W:
-                print("crop_x_right > W")
+                # print("crop_x_right > W")
                 shift = crop_x2 - W
                 crop_x1 -= shift
                 crop_x2 -= shift
     
             if crop_y1 < 0:
-                print("crop_y_top < 0")
+                # print("crop_y_top < 0")
                 shift = -crop_y1
                 crop_y1 += shift
                 crop_y2 += shift
             if crop_y2 > H:
-                print("crop_y_bottom > H")
+                # print("crop_y_bottom > H")
                 shift = crop_y2 - H
                 crop_y1 -= shift
                 crop_y2 -= shift
