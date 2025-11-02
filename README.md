@@ -1,34 +1,11 @@
 # theSketchDb Screenshot Tool
 
-1) Iterate through frames, crop faces and store them in temp dir.
-2) Group the images into person clusters.
-3) For each cluster choose top 3 images across the timeframe the person is in the sketch.
-
-## Compiling dlib w cuda support
-
-Downloaded cuda toolkit v13 following: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation
-
-git clone https://github.com/davisking/dlib.git
+## Necessary dependencies
 
 ```bash
-cd dlib
-python setup.py install --set USE_AVX_INSTRUCTIONS=ON --set DLIB_USE_CUDA=ON --set CMAKE_CUDA_ARCHITECTURES=86
+pip install insightface torchvision hdbscan
 ```
 
-specifying the CUDA arch was important since it installs for several different ones, some of which aren't supported by v13 and the compilation fails
-NVIDIA GeForce RTX 3090 Ti is compatible with 86 as (as seen here: https://developer.nvidia.com/cuda-gpus)
-Now 
-```python
-import dlib
-print(dlib.DLIB_USE_CUDA) # True
-```
-
-You also need to install  libcublas11 for some reason, it errors otherwise but there isn't any docs on it.
-
-
-```bash
-sudo apt install libcublas11
-```
 ## yt-dlp
 
 ```bash

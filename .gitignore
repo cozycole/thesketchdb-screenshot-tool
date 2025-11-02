@@ -3,6 +3,7 @@ dlib
 archive
 data
 output
+.env
 *.jpg
 *.jpeg
 *.mp4

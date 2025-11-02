@@ -63,8 +63,12 @@ class Screenshot:
         base = models.resnet50(pretrained=False)
         base.fc = nn.Linear(base.fc.in_features, 1)
         model = base
-        model.load_state_dict(torch.load(quality_model_path, map_location="cuda"))
-        model.eval().cuda()
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        model.load_state_dict(torch.load(quality_model_path, map_location=self.device))
+        if torch.cuda.is_available():
+            model.eval().cuda()
+        else:
+            model.eval()
 
         self.model = model
         self.transform = transforms.Compose([
@@ -95,15 +99,18 @@ class Screenshot:
         self.hdbscan_min_cluster = hdbscan_min_cluster_size
         self.hdbscan_min_samples = hdbscan_min_samples
         self.verbose = verbose
+        self.debug = debug
         if debug:
-            self.debug = debug
             self.verbose = True
 
     @torch.no_grad()
     def predict_quality(self, face_resized):
         # Convert NumPy array (BGR from cv2) to PIL Image (RGB)
         img = Image.fromarray(cv2.cvtColor(face_resized, cv2.COLOR_BGR2RGB))
-        img = self.transform(img).unsqueeze(0).cuda()  # shape: (1, 3, 224, 224)
+        img = self.transform(img).unsqueeze(0)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(device)
+        img = img.to(device)
         score = self.model(img)
         return score.item()
 
