@@ -4,8 +4,8 @@ import os
 
 import docker
 from docker import errors
+from docker import types as docker_types
 from celery import Celery
-from celery.result import AsyncResult
 
 client = docker.from_env()
 
@@ -36,14 +36,17 @@ def test_worker_integration(tmp_path):
 
         print("Spinning up worker container")
         worker_container = client.containers.run(
-            "screenshot-cpu",
+            "screenshot-gpu",
             name="worker-test",
             detach=True,
             network="test-network",
             environment={"CELERY_BROKER_URL": "redis://redis-test:6379/0", "MODEL_PATH" : "./model.pth"},
             volumes={str(volume_path): {"bind": "/shared", "mode": "rw"}},
+            device_requests=[
+                docker_types.DeviceRequest(count=-1, capabilities=[['gpu']])
+            ]
         )
-        time.sleep(5)
+        breakpoint()
 
         print("Connecting celery to redis")
         app = Celery(
